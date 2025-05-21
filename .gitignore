@@ -1,0 +1,20 @@
+# build artifacts
+bin/
+obj/
+out/
+
+# user settings
+.vscode/
+.idea/
+*.user
+*.suo
+
+# environment and launch config
+.env
+Properties/launchSettings.json
+appsettings.Production.json
+appsettings.Development.json
+
+# others
+*.log
+*.sqlite
