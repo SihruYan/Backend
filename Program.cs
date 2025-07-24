@@ -40,6 +40,9 @@ builder.Services.AddRDS(builder.Configuration);
 builder.Services.AddInfrastructureServices();
 builder.Services.Configure<FormNotifyOptions>(
     builder.Configuration.GetSection("FormNotify"));
+builder.Services.Configure<JwtOptions>(
+        builder.Configuration.GetSection("Jwt"));
+
 
 
 
@@ -48,6 +51,9 @@ app.UseDefaultFiles();
 app.UseStaticFiles();   
 app.UseRouting();
 app.UseRateLimiter();
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

@@ -3,6 +3,7 @@ using Backend.Repository;
 using Backend.Services;
 using Backend.ViewModel;
 using Dapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Npgsql;
@@ -36,15 +37,12 @@ public class FormController: ControllerBase
         }
         return BadRequest();
     }
-
-    [HttpGet("HealthCheck")]
-    public IActionResult HealthCheck()
-    {
-        return Ok("Api health check");
-    }
+    
     
     
     [HttpGet]
+    [Authorize]
+
     public async Task<IActionResult> GetAll()
     {
         var list = (await _formRepository.GetAllAsync()).Select(x=> new FormListViewModel(x)).ToList();
@@ -52,6 +50,8 @@ public class FormController: ControllerBase
     }
     
     [HttpGet("{id}")]
+    [Authorize]
+
     public async Task<IActionResult> GetById(Guid id)
     {
         var detail = await _formRepository.GetByIdAsync(id);
