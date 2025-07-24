@@ -1,15 +1,20 @@
-using Backend.Data;
+using Backend.DILibrary;
+using Backend.Environment;
 
+DotNetEnv.Env.Load(); 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddControllers();
-builder.Services.AddSingleton<DapperDb>();
 
-
+builder.Services.AddRDS(builder.Configuration);
+builder.Services.AddInfrastructureServices();
+builder.Services.Configure<FormNotifyOptions>(
+    builder.Configuration.GetSection("FormNotify"));
 
 
 
