@@ -4,6 +4,7 @@ using Backend.Services;
 using Backend.ViewModel;
 using Dapper;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Npgsql;
 
 namespace Backend.ApiController;
@@ -23,6 +24,7 @@ public class FormController: ControllerBase
     }
     
     [HttpPost("submit")]
+    [EnableRateLimiting("FormSubmitPolicy")]
     public async Task<IActionResult> SubmitForm([FromBody] SubmitFormViewModel viewModel)
     {
 
