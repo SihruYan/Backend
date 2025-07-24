@@ -6,7 +6,6 @@ export default defineConfig({
   plugins: [vue()],
   base: '/', // 部署在根目錄
   build: {
-    outDir: '../wwwroot',  
     emptyOutDir: true
   },
   server: {

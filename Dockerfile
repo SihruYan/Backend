@@ -1,5 +1,5 @@
 ﻿# 1️⃣ 前端：build Vue (Vite)
-FROM node:18 AS frontend
+FROM node:24 AS frontend
 
 WORKDIR /app
 COPY ClientApp/ ./ClientApp/
@@ -13,7 +13,7 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 COPY . .
 # 將前端 build 出來的檔案複製進 wwwroot
-COPY --from=frontend /app/ClientApp/dist ./ClientApp/wwwroot
+COPY --from=frontend /app/ClientApp/dist ./wwwroot
 
 RUN dotnet publish -c Release -o /app/publish
 
@@ -21,4 +21,4 @@ RUN dotnet publish -c Release -o /app/publish
 FROM mcr.microsoft.com/dotnet/aspnet:8.0
 WORKDIR /app
 COPY --from=build /app/publish .
-ENTRYPOINT ["dotnet", "YourProjectName.dll"]
+ENTRYPOINT ["dotnet", "Backend.dll"]
