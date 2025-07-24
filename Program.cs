@@ -18,22 +18,17 @@ builder.Services.AddControllers();
 // 限制 同一個 ip 在短時間內不能練續送請求
 builder.Services.AddRateLimiter(options =>
 {
-    options.RejectionStatusCode = 429;
-
-    builder.Services.AddRateLimiter(options =>
+    options.AddPolicy("FormSubmitPolicy", context =>
     {
-        options.AddPolicy("FormSubmitPolicy", context =>
+        var ip = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        return RateLimitPartition.GetFixedWindowLimiter(ip, _ => new FixedWindowRateLimiterOptions
         {
-            var ip = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
-            return RateLimitPartition.GetFixedWindowLimiter(ip, _ => new FixedWindowRateLimiterOptions
-            {
-                PermitLimit = 5,
-                Window = TimeSpan.FromMinutes(1),
-                QueueLimit = 0
-            });
+            PermitLimit = 5,
+            Window = TimeSpan.FromMinutes(1),
+            QueueLimit = 0
         });
     });
-
+    
     options.OnRejected = async (context, token) =>
     {
         context.HttpContext.Response.StatusCode = 429;
