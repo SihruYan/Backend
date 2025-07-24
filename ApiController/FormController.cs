@@ -35,7 +35,14 @@ public class FormController: ControllerBase
             return Ok(new { message = "Form submitted", id });
         }
         return BadRequest();
-    } 
+    }
+
+    [HttpGet("HealthCheck")]
+    public IActionResult HealthCheck()
+    {
+        return Ok("Api health check");
+    }
+    
     
     [HttpGet]
     public async Task<IActionResult> GetAll()
