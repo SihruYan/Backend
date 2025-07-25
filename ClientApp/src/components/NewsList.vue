@@ -45,13 +45,6 @@
         >
           草稿
         </button>
-        <button
-            @click="statusFilter = 'important'"
-            :class="{ active: statusFilter === 'important' }"
-            class="filter-btn important"
-        >
-          重要消息
-        </button>
       </div>
       <div class="actions">
         <button @click="refreshData" class="refresh-btn" :disabled="loading">
@@ -78,13 +71,7 @@
             v-for="news in paginatedNews"
             :key="news.id"
             class="news-card"
-            :class="{ important: news.isImportant }"
         >
-          <!-- 重要標記 -->
-          <div v-if="news.isImportant" class="important-badge">
-            ⭐ 重要消息
-          </div>
-
           <!-- 卡片內容 -->
           <div class="card-content">
             <div class="card-header">
@@ -99,7 +86,6 @@
 
             <div class="card-meta">
               <div class="meta-info">
-                <span class="view-count">👁️ {{ news.viewCount }}</span>
                 <span class="publish-date">
                   {{ news.publishedAt ? formatDate(news.publishedAt) : '未發布' }}
                 </span>
@@ -118,15 +104,6 @@
                     :disabled="news.updating"
                 >
                   {{ news.isPublished ? '取消發布' : '發布' }}
-                </button>
-                <button
-                    @click="toggleImportant(news)"
-                    class="action-btn important"
-                    :class="{ active: news.isImportant }"
-                    :disabled="news.updating"
-                    title="設為重要消息"
-                >
-                  ⭐
                 </button>
                 <button
                     @click="deleteNews(news)"
@@ -203,8 +180,6 @@ const loadNews = async () => {
         title: '2024年度獎學金申請開始！',
         excerpt: '多項獎學金開放申請，包含政府獎學金、學校獎學金等，申請截止日期為2024年12月31日。',
         isPublished: true,
-        isImportant: true,
-        viewCount: 2340,
         publishedAt: new Date().toISOString(),
         updating: false,
         deleting: false
@@ -214,8 +189,6 @@ const loadNews = async () => {
         title: '留學說明會活動通知',
         excerpt: '本月將舉辦多場留學說明會，涵蓋美國、英國、澳洲等熱門國家，歡迎有興趣的同學報名參加。',
         isPublished: true,
-        isImportant: false,
-        viewCount: 856,
         publishedAt: new Date(Date.now() - 86400000).toISOString(),
         updating: false,
         deleting: false
@@ -225,8 +198,6 @@ const loadNews = async () => {
         title: '新增線上諮詢服務',
         excerpt: '為了提供更便利的服務，我們新增了線上一對一諮詢功能，可以透過視訊方式進行諮詢。',
         isPublished: false,
-        isImportant: false,
-        viewCount: 0,
         publishedAt: null,
         updating: false,
         deleting: false
@@ -236,8 +207,6 @@ const loadNews = async () => {
         title: '暑期遊學團開始報名',
         excerpt: '2024年暑期遊學團現正開放報名，包含美國加州、英國倫敦等精彩行程。',
         isPublished: true,
-        isImportant: false,
-        viewCount: 423,
         publishedAt: new Date(Date.now() - 172800000).toISOString(),
         updating: false,
         deleting: false
@@ -258,8 +227,6 @@ const filteredNews = computed(() => {
     filtered = filtered.filter(news => news.isPublished)
   } else if (statusFilter.value === 'draft') {
     filtered = filtered.filter(news => !news.isPublished)
-  } else if (statusFilter.value === 'important') {
-    filtered = filtered.filter(news => news.isImportant)
   }
 
   // 搜尋篩選
@@ -271,10 +238,8 @@ const filteredNews = computed(() => {
     )
   }
 
-  // 按重要性和時間排序
+  // 按時間排序
   return filtered.sort((a, b) => {
-    if (a.isImportant && !b.isImportant) return -1
-    if (!a.isImportant && b.isImportant) return 1
     return new Date(b.publishedAt || b.createdAt || 0) - new Date(a.publishedAt || a.createdAt || 0)
   })
 })
@@ -377,6 +342,11 @@ computed(() => {
 </script>
 
 <style scoped>
+/* 全域設定 box-sizing */
+* {
+  box-sizing: border-box;
+}
+
 .news-list {
   max-width: 1400px;
   margin: 0 auto;
@@ -413,6 +383,7 @@ computed(() => {
   display: flex;
   align-items: center;
   gap: 8px;
+  box-sizing: border-box;
 }
 
 .create-btn:hover {
@@ -441,6 +412,7 @@ computed(() => {
   border-radius: 8px;
   font-size: 14px;
   transition: all 0.2s ease;
+  box-sizing: border-box;
 }
 
 .search-input:focus {
@@ -465,6 +437,7 @@ computed(() => {
   font-size: 14px;
   font-weight: 500;
   transition: all 0.2s ease;
+  box-sizing: border-box;
 }
 
 .filter-btn:hover {
@@ -478,11 +451,6 @@ computed(() => {
   border-color: #3182ce;
 }
 
-.filter-btn.important.active {
-  background: #f6ad55;
-  border-color: #f6ad55;
-}
-
 .refresh-btn {
   background: white;
   border: 1px solid #e2e8f0;
@@ -493,6 +461,7 @@ computed(() => {
   font-size: 14px;
   font-weight: 500;
   transition: all 0.2s ease;
+  box-sizing: border-box;
 }
 
 .refresh-btn:hover:not(:disabled) {
@@ -587,20 +556,6 @@ computed(() => {
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
 }
 
-.news-card.important {
-  border-left: 4px solid #f6ad55;
-  background: linear-gradient(135deg, #fffbf0 0%, #ffffff 100%);
-}
-
-.important-badge {
-  background: #f6ad55;
-  color: white;
-  padding: 8px 12px;
-  font-size: 12px;
-  font-weight: 600;
-  text-align: center;
-}
-
 .card-content {
   padding: 20px;
 }
@@ -669,19 +624,18 @@ computed(() => {
   gap: 16px;
   font-size: 13px;
   color: #718096;
+  align-items: center;
 }
 
-.view-count {
-  font-weight: 600;
-}
-
+/* 修正按鈕對齊問題 */
 .card-actions {
   display: flex;
-  gap: 8px;
+  gap: 6px;
+  align-items: center;
 }
 
 .action-btn {
-  padding: 6px 10px;
+  padding: 8px 12px;
   border-radius: 6px;
   font-size: 12px;
   font-weight: 500;
@@ -692,14 +646,17 @@ computed(() => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 28px;
-  height: 28px;
+  height: 32px; /* 統一高度 */
+  box-sizing: border-box;
+  white-space: nowrap;
 }
 
+/* 文字按鈕 */
 .action-btn.edit {
   background: #edf2f7;
   color: #4a5568;
   border-color: #e2e8f0;
+  min-width: 48px;
 }
 
 .action-btn.edit:hover {
@@ -710,32 +667,20 @@ computed(() => {
   background: #3182ce;
   color: white;
   border-color: #3182ce;
+  min-width: 56px;
 }
 
 .action-btn.toggle:hover:not(:disabled) {
   background: #2c5aa0;
 }
 
-.action-btn.important {
-  background: white;
-  color: #f6ad55;
-  border-color: #f6ad55;
-}
-
-.action-btn.important:hover:not(:disabled) {
-  background: #f6ad55;
-  color: white;
-}
-
-.action-btn.important.active {
-  background: #f6ad55;
-  color: white;
-}
-
+/* 圖示按鈕 */
 .action-btn.delete {
   background: white;
   color: #e53e3e;
   border-color: #e53e3e;
+  width: 32px;
+  padding: 0;
 }
 
 .action-btn.delete:hover:not(:disabled) {
@@ -768,6 +713,7 @@ computed(() => {
   font-size: 14px;
   font-weight: 500;
   transition: all 0.2s ease;
+  box-sizing: border-box;
 }
 
 .page-btn:hover:not(:disabled) {
@@ -797,6 +743,7 @@ computed(() => {
   transition: all 0.2s ease;
   min-width: 40px;
   text-align: center;
+  box-sizing: border-box;
 }
 
 .page-number:hover {
@@ -845,7 +792,7 @@ computed(() => {
 
   .card-actions {
     width: 100%;
-    justify-content: space-between;
+    justify-content: flex-start;
   }
 
   .page-numbers {
@@ -866,6 +813,20 @@ computed(() => {
   .pagination {
     flex-direction: column;
     gap: 12px;
+  }
+
+  .card-actions {
+    gap: 4px;
+  }
+
+  .action-btn.edit {
+    min-width: 40px;
+    font-size: 11px;
+  }
+
+  .action-btn.toggle {
+    min-width: 50px;
+    font-size: 11px;
   }
 }
 </style>

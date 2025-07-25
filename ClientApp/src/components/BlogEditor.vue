@@ -34,21 +34,6 @@
           <div class="char-count">{{ article.title.length }}/200</div>
         </div>
 
-        <!-- URL Slug -->
-        <div class="form-group">
-          <label class="form-label">文章網址 (Slug)</label>
-          <div class="slug-input-group">
-            <span class="slug-prefix">/blog/</span>
-            <input
-                v-model="article.slug"
-                type="text"
-                placeholder="自動產生或手動輸入..."
-                class="slug-input"
-            />
-          </div>
-          <div class="form-hint">留空將自動根據標題產生</div>
-        </div>
-
         <!-- 摘要 -->
         <div class="form-group">
           <label class="form-label">文章摘要</label>
@@ -60,6 +45,41 @@
               maxlength="300"
           ></textarea>
           <div class="char-count">{{ article.excerpt.length }}/300</div>
+        </div>
+
+        <!-- 文章分類 -->
+        <div class="form-group">
+          <label class="form-label">文章分類 *</label>
+          <div class="custom-select" :class="{ open: categoryDropdownOpen }">
+            <div
+                class="select-trigger"
+                @click="toggleCategoryDropdown"
+                :class="{ 'has-value': article.category }"
+            >
+              <span class="select-value">
+                {{ article.category ? getCategoryText(article.category) : '請選擇文章分類' }}
+              </span>
+              <div class="select-arrow">
+                <svg width="12" height="8" viewBox="0 0 12 8" fill="none">
+                  <path d="M1 1.5L6 6.5L11 1.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+            </div>
+            <div class="select-dropdown" v-show="categoryDropdownOpen">
+              <div
+                  class="select-option"
+                  v-for="option in categoryOptions"
+                  :key="option.value"
+                  @click="selectCategory(option.value)"
+                  :class="{ active: article.category === option.value }"
+              >
+                <span class="option-icon">{{ option.icon }}</span>
+                <span class="option-text">{{ option.label }}</span>
+                <span v-if="article.category === option.value" class="option-check">✓</span>
+              </div>
+            </div>
+          </div>
+          <div class="form-hint">選擇最符合文章內容的分類</div>
         </div>
 
         <!-- 特色圖片 -->
@@ -178,14 +198,6 @@
               立即發布
             </label>
           </div>
-
-          <div class="form-group">
-            <label class="checkbox-label">
-              <input v-model="article.isFeatured" type="checkbox" />
-              <span class="checkmark"></span>
-              設為精選文章
-            </label>
-          </div>
         </div>
 
         <div class="sidebar-section">
@@ -194,10 +206,6 @@
             <div class="stat-item">
               <span class="stat-label">字數統計</span>
               <span class="stat-value">{{ wordCount }}</span>
-            </div>
-            <div class="stat-item" v-if="isEditing">
-              <span class="stat-label">瀏覽次數</span>
-              <span class="stat-value">{{ article.viewCount || 0 }}</span>
             </div>
           </div>
         </div>
@@ -230,16 +238,25 @@ const isEditing = computed(() => route.params.id !== undefined)
 const isSaving = ref(false)
 const isDeleting = ref(false)
 const showHtml = ref(false)
+const categoryDropdownOpen = ref(false)
+
+const categoryOptions = [
+  { value: 'things-to-know', label: '留學後才知道的事', icon: '📚' },
+  { value: 'how-i-changed', label: '留學後的我變了', icon: '🌟' },
+  { value: 'career-sharing', label: '國外職業分享', icon: '💼' },
+  { value: 'comfort-zone', label: '勇敢跳出舒適圈：以前的我 vs 現在的我', icon: '🚀' },
+  { value: 'student-choice', label: '學生自選主題', icon: '✨' }
+]
 
 const article = ref({
   title: '',
   slug: '',
   content: '',
   excerpt: '',
+  category: '',
   featuredImageUrl: '',
   isPublished: false,
   isFeatured: false,
-  viewCount: 0
 })
 
 const editor = ref(null)
@@ -249,6 +266,14 @@ onMounted(async () => {
   if (isEditing.value) {
     await loadArticle()
   }
+
+  // 添加點擊外部關閉下拉選單的事件監聽
+  const handleClickOutside = (e) => {
+    if (!e.target.closest('.custom-select')) {
+      categoryDropdownOpen.value = false
+    }
+  }
+  document.addEventListener('click', handleClickOutside)
 })
 
 const loadArticle = async () => {
@@ -262,10 +287,10 @@ const loadArticle = async () => {
       slug: 'how-to-apply-us-graduate-school',
       content: '<h2>申請美國研究所的重要步驟</h2><p>申請美國研究所是一個複雜的過程...</p>',
       excerpt: '詳細介紹申請美國研究所的每個步驟，包含文件準備、考試安排等重要資訊',
+      category: 'things-to-know',
       featuredImageUrl: 'https://via.placeholder.com/600x400',
       isPublished: true,
-      isFeatured: true,
-      viewCount: 1250
+      isFeatured: true
     }
   } catch (error) {
     console.error('Failed to load article:', error)
@@ -347,6 +372,11 @@ const publishArticle = async () => {
     return
   }
 
+  if (!article.value.category) {
+    alert('請選擇文章分類')
+    return
+  }
+
   if (!article.value.content.trim()) {
     alert('請輸入文章內容')
     return
@@ -417,9 +447,35 @@ const deleteArticle = async () => {
     isDeleting.value = false
   }
 }
+
+const getCategoryText = (categoryValue) => {
+  const option = categoryOptions.find(opt => opt.value === categoryValue)
+  return option ? `${option.icon} ${option.label}` : '未分類'
+}
+
+const toggleCategoryDropdown = () => {
+  categoryDropdownOpen.value = !categoryDropdownOpen.value
+}
+
+const selectCategory = (value) => {
+  article.value.category = value
+  categoryDropdownOpen.value = false
+}
+
+// 點擊外部關閉下拉選單
+onMounted(async () => {
+  if (isEditing.value) {
+    await loadArticle()
+  }
+})
 </script>
 
 <style scoped>
+/* 全域設定 box-sizing */
+* {
+  box-sizing: border-box;
+}
+
 .blog-editor {
   max-width: 1400px;
 }
@@ -467,6 +523,7 @@ const deleteArticle = async () => {
   cursor: pointer;
   border: 1px solid;
   transition: all 0.2s ease;
+  box-sizing: border-box;
 }
 
 .save-draft-btn {
@@ -505,6 +562,7 @@ const deleteArticle = async () => {
   border-radius: 8px;
   border: 1px solid #e2e8f0;
   padding: 24px;
+  box-sizing: border-box;
 }
 
 .form-group {
@@ -519,6 +577,7 @@ const deleteArticle = async () => {
   font-size: 14px;
 }
 
+/* 修正輸入框超出問題 */
 .title-input {
   width: 100%;
   padding: 12px 16px;
@@ -526,6 +585,7 @@ const deleteArticle = async () => {
   border-radius: 6px;
   font-size: 18px;
   font-weight: 600;
+  box-sizing: border-box;
 }
 
 .title-input:focus {
@@ -540,6 +600,8 @@ const deleteArticle = async () => {
   border: 1px solid #e2e8f0;
   border-radius: 6px;
   overflow: hidden;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .slug-prefix {
@@ -548,6 +610,7 @@ const deleteArticle = async () => {
   color: #718096;
   font-size: 14px;
   border-right: 1px solid #e2e8f0;
+  flex-shrink: 0;
 }
 
 .slug-input {
@@ -555,6 +618,8 @@ const deleteArticle = async () => {
   padding: 12px 16px;
   border: none;
   font-size: 14px;
+  min-width: 0; /* 防止 flex item 超出 */
+  box-sizing: border-box;
 }
 
 .slug-input:focus {
@@ -568,6 +633,7 @@ const deleteArticle = async () => {
   border-radius: 6px;
   font-size: 14px;
   resize: vertical;
+  box-sizing: border-box;
 }
 
 .excerpt-input:focus {
@@ -587,6 +653,119 @@ const deleteArticle = async () => {
   font-size: 12px;
   color: #718096;
   margin-top: 4px;
+}
+
+.custom-select {
+  position: relative;
+  width: 100%;
+}
+
+.select-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 16px 20px;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+  min-height: 56px;
+}
+
+.select-trigger:hover {
+  border-color: #cbd5e0;
+  background: white;
+}
+
+.select-trigger.has-value {
+  color: #2d3748;
+  font-weight: 500;
+}
+
+.custom-select.open .select-trigger {
+  border-color: #3182ce;
+  box-shadow: 0 0 0 4px rgba(49, 130, 206, 0.15);
+  background: white;
+  border-bottom-left-radius: 4px;
+  border-bottom-right-radius: 4px;
+}
+
+.select-value {
+  font-size: 15px;
+  color: #2d3748;
+  flex: 1;
+}
+
+.select-trigger:not(.has-value) .select-value {
+  color: #a0aec0;
+}
+
+.select-arrow {
+  color: #718096;
+  transition: all 0.2s ease;
+  margin-left: 12px;
+}
+
+.custom-select.open .select-arrow {
+  color: #3182ce;
+  transform: rotate(180deg);
+}
+
+.select-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 2px solid #3182ce;
+  border-top: none;
+  border-radius: 0 0 12px 12px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  z-index: 1000;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.select-option {
+  display: flex;
+  align-items: center;
+  padding: 16px 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-bottom: 1px solid #f7fafc;
+}
+
+.select-option:last-child {
+  border-bottom: none;
+}
+
+.select-option:hover {
+  background: #f7fafc;
+}
+
+.select-option.active {
+  background: #ebf8ff;
+  color: #3182ce;
+  font-weight: 600;
+}
+
+.option-icon {
+  font-size: 18px;
+  margin-right: 12px;
+}
+
+.option-text {
+  flex: 1;
+  font-size: 15px;
+}
+
+.option-check {
+  color: #3182ce;
+  font-weight: bold;
+  font-size: 16px;
 }
 
 .image-upload {
@@ -634,6 +813,7 @@ const deleteArticle = async () => {
   text-align: center;
   cursor: pointer;
   transition: all 0.2s ease;
+  box-sizing: border-box;
 }
 
 .upload-area:hover {
@@ -657,12 +837,20 @@ const deleteArticle = async () => {
   border: 1px solid #e2e8f0;
   border-radius: 6px;
   font-size: 14px;
+  box-sizing: border-box;
+}
+
+.image-url-input:focus {
+  outline: none;
+  border-color: #3182ce;
+  box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.1);
 }
 
 .editor-wrapper {
   border: 1px solid #e2e8f0;
   border-radius: 6px;
   overflow: hidden;
+  box-sizing: border-box;
 }
 
 .editor-toolbar {
@@ -673,6 +861,7 @@ const deleteArticle = async () => {
   background: #f7fafc;
   border-bottom: 1px solid #e2e8f0;
   flex-wrap: wrap;
+  box-sizing: border-box;
 }
 
 .toolbar-group {
@@ -694,6 +883,7 @@ const deleteArticle = async () => {
   cursor: pointer;
   font-size: 12px;
   transition: all 0.2s ease;
+  box-sizing: border-box;
 }
 
 .toolbar-btn:hover {
@@ -711,6 +901,7 @@ const deleteArticle = async () => {
   border: 1px solid #e2e8f0;
   border-radius: 4px;
   font-size: 12px;
+  box-sizing: border-box;
 }
 
 .rich-editor {
@@ -718,6 +909,9 @@ const deleteArticle = async () => {
   padding: 16px;
   outline: none;
   line-height: 1.6;
+  width: 100%;
+  box-sizing: border-box;
+  overflow-wrap: break-word;
 }
 
 .rich-editor:focus {
@@ -732,6 +926,7 @@ const deleteArticle = async () => {
   font-family: 'Courier New', monospace;
   font-size: 14px;
   resize: vertical;
+  box-sizing: border-box;
 }
 
 .html-textarea:focus {
@@ -750,6 +945,7 @@ const deleteArticle = async () => {
   border: 1px solid #e2e8f0;
   border-radius: 8px;
   padding: 20px;
+  box-sizing: border-box;
 }
 
 .sidebar-title {
@@ -809,6 +1005,7 @@ const deleteArticle = async () => {
   cursor: pointer;
   border: 1px solid;
   transition: all 0.2s ease;
+  box-sizing: border-box;
 }
 
 .preview-btn {
@@ -875,6 +1072,14 @@ const deleteArticle = async () => {
   .html-textarea {
     min-height: 300px;
     padding: 12px;
+  }
+
+  .editor-main {
+    padding: 16px;
+  }
+
+  .sidebar-section {
+    padding: 16px;
   }
 }
 </style>

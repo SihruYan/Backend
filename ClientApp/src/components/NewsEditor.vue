@@ -158,19 +158,11 @@
           <div class="form-group">
             <label class="checkbox-label">
               <input v-model="news.isPublished" type="checkbox" />
-              <span class="checkmark"></span>
-              立即發布
+              指定時間發布
             </label>
           </div>
 
-          <div class="form-group">
-            <label class="checkbox-label important">
-              <input v-model="news.isImportant" type="checkbox" />
-              <span class="checkmark important"></span>
-              設為重要消息
-            </label>
-            <div class="form-hint">重要消息會在列表頂部顯示並有特殊標記</div>
-          </div>
+
 
           <div v-if="news.isPublished" class="form-group">
             <label class="form-label">發布時間</label>
@@ -189,40 +181,10 @@
               <span class="stat-label">字數統計</span>
               <span class="stat-value">{{ wordCount }}</span>
             </div>
-            <div class="stat-item" v-if="isEditing">
-              <span class="stat-label">瀏覽次數</span>
-              <span class="stat-value">{{ news.viewCount || 0 }}</span>
-            </div>
             <div class="stat-item" v-if="isEditing && news.publishedAt">
               <span class="stat-label">發布時間</span>
               <span class="stat-value">{{ formatDate(news.publishedAt) }}</span>
             </div>
-          </div>
-        </div>
-
-        <div class="sidebar-section">
-          <h3 class="sidebar-title">消息類型</h3>
-          <div class="news-type-selector">
-            <label class="type-option">
-              <input v-model="news.type" type="radio" value="general" />
-              <span class="type-icon">📢</span>
-              <span class="type-name">一般消息</span>
-            </label>
-            <label class="type-option">
-              <input v-model="news.type" type="radio" value="event" />
-              <span class="type-icon">📅</span>
-              <span class="type-name">活動通知</span>
-            </label>
-            <label class="type-option">
-              <input v-model="news.type" type="radio" value="scholarship" />
-              <span class="type-icon">🎓</span>
-              <span class="type-name">獎學金</span>
-            </label>
-            <label class="type-option">
-              <input v-model="news.type" type="radio" value="urgent" />
-              <span class="type-icon">🚨</span>
-              <span class="type-name">緊急通知</span>
-            </label>
           </div>
         </div>
 
@@ -264,9 +226,6 @@ const news = ref({
   excerpt: '',
   featuredImageUrl: '',
   isPublished: false,
-  isImportant: false,
-  viewCount: 0,
-  type: 'general',
   publishedAt: null
 })
 
@@ -296,9 +255,6 @@ const loadNews = async () => {
       excerpt: '多項獎學金開放申請，包含政府獎學金、學校獎學金等，申請截止日期為2024年12月31日。',
       featuredImageUrl: 'https://via.placeholder.com/600x400',
       isPublished: true,
-      isImportant: true,
-      viewCount: 2340,
-      type: 'scholarship',
       publishedAt: new Date().toISOString()
     }
 
@@ -422,12 +378,6 @@ const saveNews = async () => {
 const previewNews = () => {
   // 開啟預覽視窗
   const previewWindow = window.open('', '_blank')
-  const typeEmoji = {
-    general: '📢',
-    event: '📅',
-    scholarship: '🎓',
-    urgent: '🚨'
-  }
 
   const previewContent = `
     <html>
@@ -447,14 +397,6 @@ const previewNews = () => {
             padding-bottom: 20px;
             margin-bottom: 20px;
           }
-          .news-type {
-            display: inline-block;
-            background: #f7fafc;
-            padding: 4px 12px;
-            border-radius: 16px;
-            font-size: 14px;
-            margin-bottom: 10px;
-          }
           .news-title {
             margin: 0;
             color: #2d3748;
@@ -472,11 +414,7 @@ const previewNews = () => {
       </head>
       <body>
         <div class="news-header">
-          <div class="news-type">${typeEmoji[news.value.type]} ${getTypeText(news.value.type)}</div>
-          <h1 class="news-title">
-            ${news.value.title}
-            ${news.value.isImportant ? '<span class="important-badge">⭐ 重要</span>' : ''}
-          </h1>
+          <h1 class="news-title">${news.value.title}</h1>
         </div>
         ${news.value.featuredImageUrl ? `<img src="${news.value.featuredImageUrl}" alt="消息圖片">` : ''}
         <div>${news.value.content}</div>
@@ -494,8 +432,7 @@ const duplicateNews = () => {
       ...news.value,
       title: news.value.title + ' (副本)',
       isPublished: false,
-      publishedAt: null,
-      viewCount: 0
+      publishedAt: null
     }
 
     // 將資料暫存到 sessionStorage
@@ -531,16 +468,6 @@ const formatDate = (dateString) => {
   })
 }
 
-const getTypeText = (type) => {
-  const typeMap = {
-    general: '一般消息',
-    event: '活動通知',
-    scholarship: '獎學金',
-    urgent: '緊急通知'
-  }
-  return typeMap[type] || '一般消息'
-}
-
 // 檢查是否有複製的消息資料
 onMounted(() => {
   if (!isEditing.value) {
@@ -554,6 +481,11 @@ onMounted(() => {
 </script>
 
 <style scoped>
+/* 全域設定 box-sizing */
+* {
+  box-sizing: border-box;
+}
+
 .news-editor {
   max-width: 1400px;
   margin: 0 auto;
@@ -607,6 +539,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 8px;
+  box-sizing: border-box;
 }
 
 .save-draft-btn {
@@ -647,6 +580,7 @@ onMounted(() => {
   border-radius: 12px;
   border: 1px solid #e2e8f0;
   padding: 24px;
+  box-sizing: border-box;
 }
 
 .form-group {
@@ -661,6 +595,7 @@ onMounted(() => {
   font-size: 14px;
 }
 
+/* 修正輸入框超出問題 */
 .title-input {
   width: 100%;
   padding: 16px 20px;
@@ -669,6 +604,7 @@ onMounted(() => {
   font-size: 20px;
   font-weight: 600;
   transition: all 0.2s ease;
+  box-sizing: border-box;
 }
 
 .title-input:focus {
@@ -685,6 +621,7 @@ onMounted(() => {
   font-size: 14px;
   resize: vertical;
   transition: all 0.2s ease;
+  box-sizing: border-box;
 }
 
 .excerpt-input:focus {
@@ -757,6 +694,7 @@ onMounted(() => {
   text-align: center;
   cursor: pointer;
   transition: all 0.2s ease;
+  box-sizing: border-box;
 }
 
 .upload-area:hover {
@@ -781,6 +719,13 @@ onMounted(() => {
   border: 1px solid #e2e8f0;
   border-radius: 6px;
   font-size: 14px;
+  box-sizing: border-box;
+}
+
+.image-url-input:focus {
+  outline: none;
+  border-color: #3182ce;
+  box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.1);
 }
 
 .editor-wrapper {
@@ -788,6 +733,7 @@ onMounted(() => {
   border-radius: 8px;
   overflow: hidden;
   transition: border-color 0.2s ease;
+  box-sizing: border-box;
 }
 
 .editor-wrapper:focus-within {
@@ -802,6 +748,7 @@ onMounted(() => {
   background: #f8fafc;
   border-bottom: 1px solid #e2e8f0;
   flex-wrap: wrap;
+  box-sizing: border-box;
 }
 
 .toolbar-group {
@@ -827,6 +774,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
+  box-sizing: border-box;
 }
 
 .toolbar-btn:hover {
@@ -846,6 +794,7 @@ onMounted(() => {
   border-radius: 6px;
   font-size: 13px;
   background: white;
+  box-sizing: border-box;
 }
 
 .rich-editor {
@@ -854,6 +803,9 @@ onMounted(() => {
   outline: none;
   line-height: 1.7;
   font-size: 15px;
+  width: 100%;
+  box-sizing: border-box;
+  overflow-wrap: break-word;
 }
 
 .rich-editor:focus {
@@ -869,6 +821,7 @@ onMounted(() => {
   font-size: 14px;
   resize: vertical;
   outline: none;
+  box-sizing: border-box;
 }
 
 .html-textarea:focus {
@@ -886,6 +839,7 @@ onMounted(() => {
   border: 1px solid #e2e8f0;
   border-radius: 12px;
   padding: 20px;
+  box-sizing: border-box;
 }
 
 .sidebar-title {
@@ -905,10 +859,6 @@ onMounted(() => {
   font-weight: 500;
 }
 
-.checkbox-label.important {
-  color: #f6ad55;
-}
-
 .checkmark {
   width: 16px;
   height: 16px;
@@ -917,16 +867,19 @@ onMounted(() => {
   position: relative;
 }
 
-.checkmark.important {
-  border-color: #f6ad55;
-}
-
 .datetime-input {
   width: 100%;
   padding: 10px 12px;
   border: 1px solid #e2e8f0;
   border-radius: 6px;
   font-size: 14px;
+  box-sizing: border-box;
+}
+
+.datetime-input:focus {
+  outline: none;
+  border-color: #3182ce;
+  box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.1);
 }
 
 .stats-info {
@@ -952,42 +905,6 @@ onMounted(() => {
   color: #2d3748;
 }
 
-.news-type-selector {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.type-option {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 12px;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.type-option:hover {
-  background: #f7fafc;
-  border-color: #cbd5e0;
-}
-
-.type-option input:checked + .type-icon + .type-name {
-  color: #3182ce;
-  font-weight: 600;
-}
-
-.type-icon {
-  font-size: 16px;
-}
-
-.type-name {
-  font-size: 14px;
-  color: #4a5568;
-}
-
 .action-buttons {
   display: flex;
   flex-direction: column;
@@ -1007,6 +924,7 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   gap: 8px;
+  box-sizing: border-box;
 }
 
 .preview-btn {
@@ -1067,6 +985,10 @@ onMounted(() => {
 }
 
 @media (max-width: 768px) {
+  .news-editor {
+    padding: 0 10px;
+  }
+
   .editor-toolbar {
     padding: 8px;
   }

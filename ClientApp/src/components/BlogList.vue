@@ -90,7 +90,6 @@
 
             <div class="article-meta">
               <div class="meta-info">
-                <span class="view-count">👁️ {{ article.viewCount }}</span>
                 <span class="date">{{ formatDate(article.createdAt) }}</span>
               </div>
 
@@ -174,10 +173,9 @@ const loadArticles = async () => {
         id: '1',
         title: '如何申請美國研究所：完整指南',
         excerpt: '詳細介紹申請美國研究所的每個步驟，包含文件準備、考試安排等重要資訊...',
-        featuredImageUrl: 'https://via.placeholder.com/300x200',
+        featuredImageUrl: 'https://picsum.photos/300/200',
         isPublished: true,
         isFeatured: true,
-        viewCount: 1250,
         createdAt: new Date().toISOString(),
         updating: false,
         deleting: false
@@ -186,10 +184,9 @@ const loadArticles = async () => {
         id: '2',
         title: '英國留學生活經驗分享',
         excerpt: '分享在英國留學的真實體驗，包含住宿、飲食、交通等生活細節...',
-        featuredImageUrl: null,
+        featuredImageUrl: 'https://picsum.photos/300/200',
         isPublished: false,
         isFeatured: false,
-        viewCount: 0,
         createdAt: new Date(Date.now() - 86400000).toISOString(),
         updating: false,
         deleting: false
