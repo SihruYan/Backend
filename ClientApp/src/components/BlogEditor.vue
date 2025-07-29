@@ -147,15 +147,7 @@
                   1.
                 </button>
               </div>
-
-              <div class="toolbar-group">
-                <button @click="insertLink" class="toolbar-btn" title="插入連結">
-                  🔗
-                </button>
-                <button @click="insertImage" class="toolbar-btn" title="插入圖片">
-                  🖼️
-                </button>
-              </div>
+              
 
               <div class="toolbar-group">
                 <button @click="toggleHtmlMode" class="toolbar-btn" :class="{ active: showHtml }" title="HTML 模式">
@@ -171,8 +163,7 @@
                   contenteditable="true"
                   @input="updateContent"
                   @paste="handlePaste"
-                  v-html="article.content"
-              ></div>
+              />
             </div>
 
             <div v-else class="html-editor">
@@ -189,18 +180,6 @@
       <!-- 側邊欄設定 -->
       <div class="editor-sidebar">
         <div class="sidebar-section">
-          <h3 class="sidebar-title">發布選項</h3>
-
-          <div class="form-group">
-            <label class="checkbox-label">
-              <input v-model="article.isPublished" type="checkbox" />
-              <span class="checkmark"></span>
-              立即發布
-            </label>
-          </div>
-        </div>
-
-        <div class="sidebar-section">
           <h3 class="sidebar-title">統計資訊</h3>
           <div class="stats-info">
             <div class="stat-item">
@@ -209,27 +188,19 @@
             </div>
           </div>
         </div>
-
-        <div class="sidebar-section" v-if="isEditing">
-          <h3 class="sidebar-title">文章操作</h3>
-          <div class="action-buttons">
-            <button @click="previewArticle" class="preview-btn">
-              👁️ 預覽文章
-            </button>
-            <button @click="deleteArticle" class="delete-btn" :disabled="isDeleting">
-              🗑️ {{ isDeleting ? '刪除中...' : '刪除文章' }}
-            </button>
-          </div>
-        </div>
+        
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { apiGet, apiPost } from '../utils/api.js'
+import {computed, onMounted, ref} from 'vue'
+import {useRoute, useRouter} from 'vue-router'
+import {apiGet, apiPost, apiPut} from '../utils/api.js'
+import { uploadImageToCloudinary } from '../utils/cloudinary.js'
+import Swal from 'sweetalert2'
+
 
 const route = useRoute()
 const router = useRouter()
@@ -267,6 +238,11 @@ onMounted(async () => {
     await loadArticle()
   }
 
+  if (editor.value) {
+    editor.value.innerHTML = article.value.content || ''
+  }
+  
+
   // 添加點擊外部關閉下拉選單的事件監聽
   const handleClickOutside = (e) => {
     if (!e.target.closest('.custom-select')) {
@@ -276,22 +252,11 @@ onMounted(async () => {
   document.addEventListener('click', handleClickOutside)
 })
 
+
 const loadArticle = async () => {
   try {
-    // const data = await apiGet(`/api/Blog/${route.params.id}`)
-    // article.value = data
-
-    // 模擬資料
-    article.value = {
-      title: '如何申請美國研究所：完整指南',
-      slug: 'how-to-apply-us-graduate-school',
-      content: '<h2>申請美國研究所的重要步驟</h2><p>申請美國研究所是一個複雜的過程...</p>',
-      excerpt: '詳細介紹申請美國研究所的每個步驟，包含文件準備、考試安排等重要資訊',
-      category: 'things-to-know',
-      featuredImageUrl: 'https://via.placeholder.com/600x400',
-      isPublished: true,
-      isFeatured: true
-    }
+    article.value = await apiGet(`/api/Blog/${route.params.id}`)
+  
   } catch (error) {
     console.error('Failed to load article:', error)
   }
@@ -337,16 +302,20 @@ const handlePaste = (event) => {
   document.execCommand('insertText', false, text)
 }
 
-const handleImageUpload = (event) => {
+const handleImageUpload = async (event) => {
   const file = event.target.files[0]
-  if (file) {
-    // 這裡應該上傳圖片到伺服器
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      article.value.featuredImageUrl = e.target.result
-    }
-    reader.readAsDataURL(file)
+  if(!file) return
+  try {
+    const imageUrl = await uploadImageToCloudinary(file, 'blog_featured');
+    article.value.featuredImageUrl = imageUrl;
+  } catch (err) {
+    await Swal.fire({
+      icon: 'error',
+      title: '儲存失敗',
+      text: '圖片上傳失敗，請稍後再試'
+    })
   }
+  
 }
 
 const removeImage = () => {
@@ -358,8 +327,19 @@ const saveDraft = async () => {
     isSaving.value = true
     article.value.isPublished = false
     await saveArticle()
-    alert('草稿已儲存')
+    Swal.fire({
+      toast: true,
+      icon: 'success',
+      title: '草稿已儲存',
+      timer: 1500,
+      showConfirmButton: false,
+      position: 'top-end'
+    }).then(() => {
+      router.push('/dashboard/blog')
+    });
+
   } catch (error) {
+    console.log(error)
     alert('儲存失敗')
   } finally {
     isSaving.value = false
@@ -386,9 +366,18 @@ const publishArticle = async () => {
     isSaving.value = true
     article.value.isPublished = true
     await saveArticle()
-    alert('文章已發布')
-    router.push('/dashboard/blog')
+    Swal.fire({
+      toast: true,
+      icon: 'success',
+      title: '文章已發布',
+      timer: 1500,
+      showConfirmButton: false,
+      position: 'top-end'
+    }).then(() => {
+      router.push('/dashboard/blog')
+    });
   } catch (error) {
+
     alert('發布失敗')
   } finally {
     isSaving.value = false
@@ -403,50 +392,17 @@ const saveArticle = async () => {
         .replace(/[^a-z0-9\s-]/g, '')
         .replace(/\s+/g, '-')
   }
+  const isEdit = route.params.id !== undefined;
 
-  // 這裡呼叫 API 儲存文章
-  console.log('Saving article:', article.value)
-  // await apiPost('/api/Blog', article.value)
-}
-
-const previewArticle = () => {
-  // 開啟預覽視窗
-  const previewWindow = window.open('', '_blank')
-  const previewContent = `
-    <html>
-      <head>
-        <title>${article.value.title}</title>
-        <meta charset="utf-8">
-        <style>
-          body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
-          img { max-width: 100%; height: auto; }
-        </style>
-      </head>
-      <body>
-        <h1>${article.value.title}</h1>
-        ${article.value.featuredImageUrl ? `<img src="${article.value.featuredImageUrl}" alt="特色圖片">` : ''}
-        <div>${article.value.content}</div>
-      </body>
-    </html>
-  `
-  previewWindow.document.write(previewContent)
-}
-
-const deleteArticle = async () => {
-  const confirmed = confirm(`確定要刪除文章「${article.value.title}」嗎？此操作無法復原。`)
-  if (!confirmed) return
-
-  try {
-    isDeleting.value = true
-    // await apiDelete(`/api/Blog/${route.params.id}`)
-    alert('文章已刪除')
-    router.push('/dashboard/blog')
-  } catch (error) {
-    alert('刪除失敗')
-  } finally {
-    isDeleting.value = false
+  if (isEdit) {
+    // 呼叫 PUT 更新
+    await apiPut(`/api/Blog/${route.params.id}`, article.value);
+  } else {
+    // 呼叫 POST 新增
+    await apiPost('/api/Blog', article.value);
   }
 }
+
 
 const getCategoryText = (categoryValue) => {
   const option = categoryOptions.find(opt => opt.value === categoryValue)
@@ -462,12 +418,6 @@ const selectCategory = (value) => {
   categoryDropdownOpen.value = false
 }
 
-// 點擊外部關閉下拉選單
-onMounted(async () => {
-  if (isEditing.value) {
-    await loadArticle()
-  }
-})
 </script>
 
 <style scoped>

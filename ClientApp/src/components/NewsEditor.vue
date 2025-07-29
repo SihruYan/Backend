@@ -187,21 +187,7 @@
             </div>
           </div>
         </div>
-
-        <div class="sidebar-section" v-if="isEditing">
-          <h3 class="sidebar-title">消息操作</h3>
-          <div class="action-buttons">
-            <button @click="previewNews" class="preview-btn">
-              👁️ 預覽消息
-            </button>
-            <button @click="duplicateNews" class="duplicate-btn">
-              📋 複製消息
-            </button>
-            <button @click="deleteNews" class="delete-btn" :disabled="isDeleting">
-              🗑️ {{ isDeleting ? '刪除中...' : '刪除消息' }}
-            </button>
-          </div>
-        </div>
+        
       </div>
     </div>
   </div>

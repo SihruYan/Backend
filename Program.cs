@@ -3,6 +3,9 @@ using Backend.Environment;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.RateLimiting;
 using System.Net;
+using System.Text;
+using Backend.EnvironmentOptions;
+using Microsoft.IdentityModel.Tokens;
 
 DotNetEnv.Env.Load(); 
 var builder = WebApplication.CreateBuilder(args);
@@ -42,8 +45,23 @@ builder.Services.Configure<FormNotifyOptions>(
     builder.Configuration.GetSection("FormNotify"));
 builder.Services.Configure<JwtOptions>(
         builder.Configuration.GetSection("Jwt"));
+builder.Services.Configure<CloudinaryOptions>(
+    builder.Configuration.GetSection("Cloudinary"));
 
-
+builder.Services.AddAuthentication("Bearer")
+    .AddJwtBearer("Bearer", options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = false,
+            ValidateAudience = false,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Secret"])
+            )
+        };
+    });
 
 
 var app = builder.Build();

@@ -79,16 +79,37 @@ export async function apiPost(url, data) {
 }
 
 /**
+ * 發送 PUT 請求
+ * @param {string} url - API 端點
+ * @param {any} data - 請求資料
+ * @returns {Promise<any>}
+ */
+export async function apiPut(url, data) {
+    const response = await apiRequest(url, {
+        method: 'PUT',
+        body: JSON.stringify(data),
+    });
+
+    if (response.status >= 200 && response.status < 300) {
+        return response.status === 204 ? null : await response.json()
+    }
+
+    throw new Error(`HTTP error! status: ${response.status}`)
+
+}
+/**
  * 發送 DELETE 請求
  * @param {string} url - API 端點
  * @returns {Promise<any>}
  */
 export async function apiDelete(url) {
     const response = await apiRequest(url, { method: 'DELETE' })
-    if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
+
+    if (response.status >= 200 && response.status < 300) {
+        return response.status === 204 ? null : await response.json()
     }
-    return response.json()
+
+    throw new Error(`HTTP error! status: ${response.status}`)
 }
 
 /**

@@ -148,7 +148,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { apiGet, apiPost } from '../utils/api.js'
+import {apiDelete, apiGet, apiPost} from '../utils/api.js'
 
 const loading = ref(true)
 const articles = ref([])
@@ -165,33 +165,8 @@ const loadArticles = async () => {
   try {
     loading.value = true
     // 這裡需要實作後端 API
-    // articles.value = await apiGet('/api/Blog')
-
-    // 暫時使用模擬資料
-    articles.value = [
-      {
-        id: '1',
-        title: '如何申請美國研究所：完整指南',
-        excerpt: '詳細介紹申請美國研究所的每個步驟，包含文件準備、考試安排等重要資訊...',
-        featuredImageUrl: 'https://picsum.photos/300/200',
-        isPublished: true,
-        isFeatured: true,
-        createdAt: new Date().toISOString(),
-        updating: false,
-        deleting: false
-      },
-      {
-        id: '2',
-        title: '英國留學生活經驗分享',
-        excerpt: '分享在英國留學的真實體驗，包含住宿、飲食、交通等生活細節...',
-        featuredImageUrl: 'https://picsum.photos/300/200',
-        isPublished: false,
-        isFeatured: false,
-        createdAt: new Date(Date.now() - 86400000).toISOString(),
-        updating: false,
-        deleting: false
-      }
-    ]
+    articles.value = await apiGet('/api/Blog')
+    
   } catch (error) {
     console.error('Error loading articles:', error)
   } finally {
@@ -260,11 +235,10 @@ const deleteArticle = async (article) => {
 
   try {
     article.deleting = true
-    // await apiDelete(`/api/Blog/${article.id}`)
+    let res = await apiDelete(`/api/Blog/${article.id}`)
+    console.log(res)
     articles.value = articles.value.filter(a => a.id !== article.id)
-    console.log('文章已刪除:', article.title)
   } catch (error) {
-    console.error('Delete failed:', error)
     alert('刪除失敗')
   } finally {
     article.deleting = false

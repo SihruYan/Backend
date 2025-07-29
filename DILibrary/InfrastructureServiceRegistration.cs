@@ -16,13 +16,15 @@ public static class InfrastructureServiceRegistration
 
         services.AddScoped<IEmailService, MailKitService>();
         services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<IJwtService, JwtService>();
+
 
         #endregion
         #region repository
 
         services.AddScoped<IFormRepository,FormRepository>();
         services.AddScoped<IAdminUserRepository,AdminUserRepository>();
-        services.AddScoped<IJwtService, JwtService>();
+        services.AddScoped<IBlogPostRepository, BlogPostRepository>();
 
 
         #endregion
