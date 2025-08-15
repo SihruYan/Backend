@@ -6,6 +6,7 @@ out/
 # user settings
 .vscode/
 .idea/
+.vs/
 *.user
 *.suo
 
