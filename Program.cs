@@ -1,8 +1,6 @@
 using Backend.DILibrary;
 using Backend.Environment;
 using System.Threading.RateLimiting;
-using Microsoft.AspNetCore.RateLimiting;
-using System.Net;
 using System.Text;
 using Backend.EnvironmentOptions;
 using Microsoft.IdentityModel.Tokens;
@@ -79,6 +77,17 @@ var app = builder.Build();
 app.UseDefaultFiles();      
 app.UseStaticFiles();   
 app.UseRouting();
+app.Use(async (context, next) =>
+{
+    if (context.Request.Method == HttpMethods.Options)
+    {
+        context.Response.StatusCode = 204;
+        await context.Response.CompleteAsync();
+        return;
+    }
+
+    await next();
+});
 app.UseCors("FrontendPolicy");  
 app.UseRateLimiter();
 
