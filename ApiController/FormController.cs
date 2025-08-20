@@ -32,7 +32,7 @@ public class FormController: ControllerBase
         var id = await _formRepository.InsertFormAsync( JsonSerializer.Serialize(viewModel));
         if (id != null)
         {
-            await _email.SendAdminNotificationAsync();
+            await _email.SendAdminNotificationAsync(viewModel);
             return Ok(new { message = "Form submitted", id });
         }
         return BadRequest();

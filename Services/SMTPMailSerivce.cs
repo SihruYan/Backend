@@ -1,4 +1,5 @@
 using Backend.Environment;
+using Backend.ViewModel;
 using MailKit.Net.Smtp;
 using MailKit.Security;
 using Microsoft.Extensions.Options;
@@ -19,7 +20,7 @@ public class MailKitService: IEmailService
         _config = config;
     }
 
-    public async Task SendAdminNotificationAsync()
+    public async Task SendAdminNotificationAsync(SubmitFormViewModel viewModel)
     {
         var message = new MimeMessage();
 
@@ -27,10 +28,23 @@ public class MailKitService: IEmailService
         message.To.Add(new MailboxAddress("Admin", _options.AdminEmail));
         message.Subject = "🔔 收到一筆新表單提交";
 
-        var bodyText = $"""
-                        有人剛剛填寫了表單：
-                        至進後台確認完整內容。
-                        """;
+        var bodyText = $@"有人剛剛填寫了表單
+                        請至後台查看完整內容。
+                        摘要：
+                        姓名：{viewModel.FullName}
+                        Email：{viewModel.Email}
+                        電話/LINE：{viewModel.PhoneOrLine}
+                        就讀/畢業學校：{viewModel.School}
+                        科系：{viewModel.Department}
+                        目標國家：{viewModel.TargetCountry}
+                        想解決的問題：{string.Join(", ", viewModel.QuestionToResolve ?? Array.Empty<string>())}
+                        想了解課程類別：{viewModel.ProgramType}
+                        欲就讀科系：{string.Join(", ", viewModel.IntendedMajor ?? Array.Empty<string>())}
+                        預計年份：{viewModel.DepartYear}
+                        來源：{viewModel.Referral}
+                        其他補充：{viewModel.OtherInfo}
+                        ";
+
 
         message.Body = new TextPart("plain") { Text = bodyText };
 

@@ -1,3 +1,5 @@
+using Backend.ViewModel;
+
 namespace Backend.Services;
 
 public interface IEmailService
@@ -7,5 +9,5 @@ public interface IEmailService
     /// 信件內容 待討論
     /// </summary>
     /// <returns></returns>
-    public Task SendAdminNotificationAsync();
+    public Task SendAdminNotificationAsync(SubmitFormViewModel vm);
 }

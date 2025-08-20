@@ -34,16 +34,21 @@ public class SubmitFormViewModel
     /// 有意願前往的留學國家（例如：美國、英國）
     /// </summary>
     public string TargetCountry { get; set; }
+    
+    /// <summary>
+    /// 您最想解決的問題是什麼
+    /// </summary>
+    public string[] QuestionToResolve { get; set; }
 
     /// <summary>
-    /// 想申請的課程類型（例如：學士、碩士、語言學校）
+    /// 想了解的課程類別（例如：學士、碩士、語言學校）
     /// </summary>
     public string ProgramType { get; set; }
 
     /// <summary>
-    /// 欲就讀的專業或領域（例如：人工智慧、行銷）
+    /// 欲就讀的科系（例如：人工智慧、行銷）
     /// </summary>
-    public string IntendedMajor { get; set; } 
+    public string[] IntendedMajor { get; set; } 
 
     /// <summary>
     /// 預計出發或入學的年份（例如：2026）
