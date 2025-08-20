@@ -79,6 +79,7 @@ var app = builder.Build();
 app.UseDefaultFiles();      
 app.UseStaticFiles();   
 app.UseRouting();
+app.UseCors("FrontendPolicy");  
 app.UseRateLimiter();
 
 app.UseAuthentication();
