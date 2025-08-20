@@ -42,6 +42,7 @@ public class MailKitService: IEmailService
                         欲就讀科系：{string.Join(", ", viewModel.IntendedMajor ?? Array.Empty<string>())}
                         預計年份：{viewModel.DepartYear}
                         來源：{viewModel.Referral}
+                        諮詢方式：{viewModel.AskType}
                         其他補充：{viewModel.OtherInfo}
                         ";
 

@@ -64,4 +64,9 @@ public class SubmitFormViewModel
     /// 其他補充說明（可空白，用來填寫特殊狀況或需求）
     /// </summary>
     public string OtherInfo { get; set; } 
+    
+    /// <summary>
+    /// 諮詢方式
+    /// </summary>
+    public string AskType { get; set; }
 }
