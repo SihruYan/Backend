@@ -17,6 +17,17 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddControllers();
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend",
+        policy => policy
+            .WithOrigins(
+                "http://localhost:5173",  
+                "https://theyaojing.org" 
+            )
+            .AllowAnyHeader()
+            .AllowAnyMethod());
+});
 
 // 限制 同一個 ip 在短時間內不能練續送請求
 builder.Services.AddRateLimiter(options =>
