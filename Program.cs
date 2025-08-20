@@ -24,8 +24,10 @@ builder.Services.AddCors(options =>
                 "https://theyaojing.org" 
             )
             .AllowAnyHeader()
-            .AllowAnyMethod());
+            .AllowAnyMethod()
+            .AllowCredentials());
 });
+
 
 // 限制 同一個 ip 在短時間內不能練續送請求
 builder.Services.AddRateLimiter(options =>
@@ -78,7 +80,7 @@ app.UseDefaultFiles();
 app.UseStaticFiles();   
 app.UseRouting();
 
-app.UseCors("FrontendPolicy");  
+app.UseCors("AllowFrontend");  
 app.UseRateLimiter();
 
 app.UseAuthentication();
@@ -106,9 +108,4 @@ app.Use(async (context, next) =>
 });
 
 app.MapControllers();
-app.MapMethods("{*path}", new[] { "OPTIONS" }, async context =>
-{
-    var result = Results.Ok();
-    await result.ExecuteAsync(context); 
-}).RequireCors("FrontendPolicy");
 app.Run();
