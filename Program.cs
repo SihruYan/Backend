@@ -77,17 +77,7 @@ var app = builder.Build();
 app.UseDefaultFiles();      
 app.UseStaticFiles();   
 app.UseRouting();
-app.Use(async (context, next) =>
-{
-    if (context.Request.Method == HttpMethods.Options)
-    {
-        context.Response.StatusCode = 204;
-        await context.Response.CompleteAsync();
-        return;
-    }
 
-    await next();
-});
 app.UseCors("FrontendPolicy");  
 app.UseRateLimiter();
 
@@ -116,4 +106,9 @@ app.Use(async (context, next) =>
 });
 
 app.MapControllers();
+app.MapMethods("{*path}", new[] { "OPTIONS" }, async context =>
+{
+    var result = Results.Ok();
+    await result.ExecuteAsync(context); 
+}).RequireCors("FrontendPolicy");
 app.Run();
